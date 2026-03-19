@@ -23,12 +23,8 @@ export default function ScrapeProgress({ articles, onDone }: Props) {
   const [streamError, setStreamError] = useState<string | null>(null);
   const total = articles.length;
   const cancelRef = useRef<(() => void) | null>(null);
-  const startedRef = useRef(false);
 
   useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-
     const urls = articles.map((a) => a.url);
     let localErrors = 0;
 
@@ -50,7 +46,7 @@ export default function ScrapeProgress({ articles, onDone }: Props) {
     );
 
     cancelRef.current = cancel;
-    return () => cancel();
+    return cancel;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -77,7 +73,11 @@ export default function ScrapeProgress({ articles, onDone }: Props) {
           />
         </div>
         <p className="text-sm text-gray-500 truncate">
-          {current < total ? `Scraping: ${currentTitle}` : "Building document…"}
+          {current >= total
+            ? "Building document…"
+            : current > 0
+            ? `Done: ${currentTitle}`
+            : `Fetching: ${articles[current]?.title ?? articles[current]?.url ?? "…"}`}
         </p>
       </div>
 

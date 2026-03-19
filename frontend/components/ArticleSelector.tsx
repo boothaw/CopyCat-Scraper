@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { Article } from "@/types";
+import type { Article, DiscoverResponse } from "@/types";
 
 interface Props {
   articles: Article[];
+  method?: DiscoverResponse["method"];
   onScrape: (selected: Article[]) => void;
   onBack: () => void;
 }
 
-export default function ArticleSelector({ articles, onScrape, onBack }: Props) {
+export default function ArticleSelector({ articles, method, onScrape, onBack }: Props) {
   const [checked, setChecked] = useState<Set<string>>(
     () => new Set(articles.map((a) => a.url))
   );
@@ -53,6 +54,11 @@ export default function ArticleSelector({ articles, onScrape, onBack }: Props) {
         >
           ← Back
         </button>
+        {method === "crawl" && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-4 py-2.5 text-sm text-amber-700">
+            No sitemap found — results were discovered by crawling the site. Review the list and deselect any non-article pages before scraping.
+          </p>
+        )}
         <div className="mt-3 flex items-baseline justify-between">
           <h2 className="text-2xl font-bold text-gray-900">
             {articles.length} Article{articles.length !== 1 ? "s" : ""} Found

@@ -20,9 +20,9 @@ def scrape_article(url: str) -> dict | None:
     try:
         headers = {
             "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/91.0.4472.124 Safari/537.36"
+                "Chrome/120.0.0.0 Safari/537.36"
             )
         }
         response = requests.get(url, timeout=15, headers=headers)
@@ -46,8 +46,42 @@ def scrape_article(url: str) -> dict | None:
 
         # Process with Readability for clean article extraction
         doc = Document(response.text)
-        html_content = doc.summary()
-        soup = BeautifulSoup(html_content, "html.parser")
+        readability_html = doc.summary()
+        readability_soup = BeautifulSoup(readability_html, "html.parser")
+        readability_text = readability_soup.get_text(separator=" ", strip=True)
+
+        # If Readability extracted sparse content, try page-builder / CMS selectors
+        # Priority order: semantic HTML first, then common page-builder classes
+        CONTENT_SELECTORS = [
+            "article",
+            "main",
+            "#main-content",
+            ".entry-content",
+            ".post-content",
+            ".article-content",
+            ".et_pb_section",       # Divi
+            ".fl-builder-content",  # Beaver Builder
+            ".elementor-section",   # Elementor
+            ".wp-block-group",      # Gutenberg
+            "#page-container",      # Divi fallback
+        ]
+
+        fallback_soup = None
+        if len(readability_text) < 800:
+            for selector in CONTENT_SELECTORS:
+                matches = original_soup.select(selector)
+                if not matches:
+                    continue
+                # Concatenate all matches into a single wrapper div
+                wrapper = BeautifulSoup("<div></div>", "html.parser").div
+                for m in matches:
+                    wrapper.append(BeautifulSoup(str(m), "html.parser"))
+                candidate_text = wrapper.get_text(separator=" ", strip=True)
+                if len(candidate_text) > len(readability_text):
+                    fallback_soup = wrapper
+                    break
+
+        soup = fallback_soup if fallback_soup else readability_soup
 
         if not title:
             title_tag = soup.find("h1") or soup.find("h2")

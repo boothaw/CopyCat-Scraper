@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { discoverArticles } from "@/lib/api";
-import type { Article } from "@/types";
+import type { Article, DiscoverResponse } from "@/types";
 
 interface Props {
-  onDiscovered: (articles: Article[]) => void;
+  onDiscovered: (articles: Article[], method: DiscoverResponse["method"]) => void;
   onBack: () => void;
 }
 
@@ -21,7 +21,7 @@ export default function SitemapInput({ onDiscovered, onBack }: Props) {
     setError(null);
     try {
       const data = await discoverArticles(url.trim());
-      onDiscovered(data.articles);
+      onDiscovered(data.articles, data.method);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Something went wrong. Please try again."

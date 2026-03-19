@@ -7,6 +7,7 @@ export interface Article {
 export interface DiscoverResponse {
   articles: Article[];
   count: number;
+  method: "sitemap" | "crawl";
 }
 
 export type ScrapeMode = "sitemap" | "manual";

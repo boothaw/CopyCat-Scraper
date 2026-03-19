@@ -7,7 +7,7 @@ import ManualUrlInput from "@/components/ManualUrlInput";
 import ArticleSelector from "@/components/ArticleSelector";
 import ScrapeProgress from "@/components/ScrapeProgress";
 import DownloadStep from "@/components/DownloadStep";
-import type { Article, ScrapeMode, WizardStep } from "@/types";
+import type { Article, DiscoverResponse, ScrapeMode, WizardStep } from "@/types";
 
 interface DoneState {
   fileId: string | null;
@@ -20,6 +20,7 @@ export default function Home() {
   const [step, setStep] = useState<WizardStep>(0);
   const [mode, setMode] = useState<ScrapeMode>("sitemap");
   const [articles, setArticles] = useState<Article[]>([]);
+  const [discoverMethod, setDiscoverMethod] = useState<DiscoverResponse["method"]>("sitemap");
   const [selectedArticles, setSelectedArticles] = useState<Article[]>([]);
   const [doneState, setDoneState] = useState<DoneState | null>(null);
 
@@ -28,8 +29,9 @@ export default function Home() {
     setStep(1);
   }
 
-  function handleDiscovered(found: Article[]) {
+  function handleDiscovered(found: Article[], method: DiscoverResponse["method"] = "sitemap") {
     setArticles(found);
+    setDiscoverMethod(method);
     setStep(2);
   }
 
@@ -115,6 +117,7 @@ export default function Home() {
         {step === 2 && (
           <ArticleSelector
             articles={articles}
+            method={discoverMethod}
             onScrape={handleScrape}
             onBack={() => setStep(1)}
           />

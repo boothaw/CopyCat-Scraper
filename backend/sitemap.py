@@ -1,13 +1,14 @@
 import requests
 import xml.etree.ElementTree as ET
 from urllib.parse import urlparse, urljoin
+from bs4 import BeautifulSoup
 import re
 
 HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/91.0.4472.124 Safari/537.36"
+        "Chrome/120.0.0.0 Safari/537.36"
     )
 }
 
@@ -86,11 +87,103 @@ def _sitemap_url_from_robots(base_url: str) -> str | None:
     return None
 
 
-def discover_articles(url: str) -> list[dict]:
+# Common paths where blogs/articles live on sites without sitemaps
+BLOG_PATHS = [
+    "/blog", "/news", "/articles", "/resources", "/posts",
+    "/insights", "/tips", "/education", "/learn", "/guides",
+    "/pet-care", "/pet-health", "/care-tips", "/advice",
+]
+
+# Patterns that strongly suggest a URL is a content page (not nav/utility)
+ARTICLE_PATH_RE = re.compile(r"/.+/.+", re.IGNORECASE)  # at least 2 path segments
+
+# Short utility paths to skip when crawling
+SKIP_EXACT = {"/", "/about", "/contact", "/services", "/team", "/staff",
+              "/faq", "/privacy", "/terms", "/sitemap", "/home"}
+
+
+def _extract_internal_links(html: str, base: str, base_domain: str) -> list[str]:
+    """Pull all same-domain hrefs out of an HTML page."""
+    soup = BeautifulSoup(html, "html.parser")
+    links = []
+    for tag in soup.find_all("a", href=True):
+        href = tag["href"].strip()
+        # Make relative URLs absolute
+        full = urljoin(base, href)
+        parsed = urlparse(full)
+        # Keep only same-domain http(s) links, strip fragments/query strings
+        if parsed.scheme not in ("http", "https"):
+            continue
+        if parsed.netloc.lower().lstrip("www.") != base_domain.lstrip("www."):
+            continue
+        clean = f"{parsed.scheme}://{parsed.netloc}{parsed.path}".rstrip("/")
+        if clean and clean not in links:
+            links.append(clean)
+    return links
+
+
+def _crawl_for_articles(base: str, base_domain: str, max_results: int = 300) -> list[dict]:
+    """
+    Fallback for sites with no sitemap.
+    1. Checks common blog listing paths (/blog, /news, etc.)
+    2. If none found, falls back to crawling the homepage.
+    Collects article-like URLs (2+ path segments, not utility pages).
+    """
+    seen: set[str] = set()
+    articles: list[dict] = []
+
+    def collect_from_page(page_url: str):
+        html = _fetch(page_url)
+        if not html:
+            return
+        for link in _extract_internal_links(html, base, base_domain):
+            path = urlparse(link).path.rstrip("/")
+            if link in seen:
+                continue
+            seen.add(link)
+            if (
+                path not in SKIP_EXACT
+                and _is_article_url(link)
+                and ARTICLE_PATH_RE.match(path)
+                and len(articles) < max_results
+            ):
+                articles.append({"url": link, "title": None, "lastmod": None})
+
+    # Step 1: try well-known blog listing pages
+    found_blog_page = False
+    for path in BLOG_PATHS:
+        listing_url = base + path
+        html = _fetch(listing_url)
+        if html and len(html) > 2000:  # non-trivial response
+            seen.add(listing_url)
+            collect_from_page(listing_url)
+            if articles:
+                found_blog_page = True
+                break  # stop at first listing page that yields results
+
+    # Step 2: fall back to crawling the homepage
+    if not found_blog_page:
+        seen.add(base)
+        collect_from_page(base)
+
+    return articles
+
+
+def _dedupe(articles: list[dict]) -> list[dict]:
+    seen: set[str] = set()
+    out = []
+    for a in articles:
+        if a["url"] not in seen:
+            seen.add(a["url"])
+            out.append(a)
+    return out
+
+
+def discover_articles(url: str) -> tuple[list[dict], str]:
     """
     Given any URL (homepage or sitemap URL), discover all article URLs.
-    Tries /sitemap.xml → /sitemap_index.xml → robots.txt fallback.
-    Returns list of {url, title, lastmod}.
+    Tries sitemap first, falls back to crawling if no sitemap is found.
+    Returns (articles, method) where method is 'sitemap' or 'crawl'.
     """
     parsed = urlparse(url)
     base = f"{parsed.scheme}://{parsed.netloc}"
@@ -103,7 +196,6 @@ def discover_articles(url: str) -> list[dict]:
         urljoin(base, "/page-sitemap.xml"),
     ]
 
-    # Also try robots.txt for a sitemap pointer
     robots_sitemap = _sitemap_url_from_robots(base)
     if robots_sitemap and robots_sitemap not in candidates:
         candidates.insert(0, robots_sitemap)
@@ -113,13 +205,8 @@ def discover_articles(url: str) -> list[dict]:
         if xml_text and ("<urlset" in xml_text or "<sitemapindex" in xml_text):
             articles = _parse_sitemap(xml_text, base_domain)
             if articles:
-                # Deduplicate by URL
-                seen = set()
-                unique = []
-                for a in articles:
-                    if a["url"] not in seen:
-                        seen.add(a["url"])
-                        unique.append(a)
-                return unique
+                return _dedupe(articles), "sitemap"
 
-    return []
+    # No sitemap found — crawl instead
+    articles = _crawl_for_articles(base, base_domain)
+    return _dedupe(articles), "crawl"

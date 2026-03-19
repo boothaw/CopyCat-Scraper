@@ -15,16 +15,10 @@ from exporter import build_docx
 
 app = FastAPI(title="Content Scraper API")
 
-# CORS — allow Netlify deployments and local dev
+# CORS — allow all origins (no credentials used, so this is safe)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://*.netlify.app",
-        "https://*.netlify.com",
-    ],
-    allow_origin_regex=r"https://.*\.netlify\.app",
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -54,13 +48,13 @@ def discover(req: DiscoverRequest):
     """
     Auto-detect sitemap from the given URL and return a list of article URLs.
     """
-    articles = discover_articles(req.url)
+    articles, method = discover_articles(req.url)
     if not articles:
         raise HTTPException(
             status_code=404,
-            detail="No sitemap found or no articles discovered. Try entering a direct sitemap URL."
+            detail="No articles found. The site may block crawlers, or try pasting URLs manually."
         )
-    return {"articles": articles, "count": len(articles)}
+    return {"articles": articles, "count": len(articles), "method": method}
 
 
 @app.post("/scrape")
@@ -76,6 +70,17 @@ async def scrape(req: ScrapeRequest):
 
     async def event_generator():
         nonlocal scraped_articles, errors
+        # Fire immediately so the client knows the stream is live
+        yield {
+            "data": json.dumps({
+                "type": "progress",
+                "current": 0,
+                "total": total,
+                "title": "Starting…",
+            })
+        }
+        await asyncio.sleep(0)
+
         for i, url in enumerate(urls, start=1):
             # Run blocking scrape in thread pool so we don't block the event loop
             article = await asyncio.to_thread(scrape_article, url)
