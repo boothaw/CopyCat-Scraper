@@ -36,14 +36,14 @@ export default function SitemapInput({ onDiscovered, onBack }: Props) {
       <div>
         <button
           onClick={onBack}
-          className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1"
+          className="text-sm text-[#9B8660] hover:text-[#5C4A2A] flex items-center gap-1"
         >
           ← Back
         </button>
-        <h2 className="mt-3 text-2xl font-bold text-gray-900">
+        <h2 className="mt-3 text-2xl font-bold text-[#1C1209]">
           Discover Articles
         </h2>
-        <p className="mt-1 text-gray-500 text-sm">
+        <p className="mt-1 text-[#7A6645] text-sm">
           Enter a website homepage URL. We'll find the sitemap and list all
           articles automatically.
         </p>
@@ -56,11 +56,11 @@ export default function SitemapInput({ onDiscovered, onBack }: Props) {
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://example.com"
           required
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          className="w-full rounded-xl border border-[#C0B490] bg-[#FAF6EA] px-4 py-3 text-[#1C1209] placeholder-[#9B8660] focus:border-[#2C4A1E] focus:outline-none focus:ring-2 focus:ring-[#B8CCB0]"
         />
 
         {error && (
-          <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <p className="rounded-lg bg-[#F5ECE8] px-4 py-3 text-sm text-[#8B1A2F]">
             {error}
           </p>
         )}
@@ -68,11 +68,11 @@ export default function SitemapInput({ onDiscovered, onBack }: Props) {
         <button
           type="submit"
           disabled={loading || !url.trim()}
-          className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+          className="flex items-center justify-center gap-2 rounded-xl bg-[#2C4A1E] px-6 py-3 font-semibold text-[#F0E8D0] transition hover:bg-[#1E3414] disabled:opacity-50"
         >
           {loading ? (
             <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#F0E8D0] border-t-transparent" />
               Discovering articles…
             </>
           ) : (

@@ -64,7 +64,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-start justify-center px-4 py-12">
+    <main className="min-h-screen bg-[#F0E8D0] flex items-start justify-center px-4 py-12">
       <div className="w-full max-w-2xl">
         {/* Step indicator */}
         {step > 0 && step < 4 && (
@@ -74,8 +74,8 @@ export default function Home() {
                 <div
                   className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition ${
                     step >= s
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-400"
+                      ? "bg-[#2C4A1E] text-[#F0E8D0]"
+                      : "bg-[#D4C9A8] text-[#9B8660]"
                   }`}
                 >
                   {s}
@@ -83,13 +83,13 @@ export default function Home() {
                 {s < 3 && (
                   <div
                     className={`h-px w-8 transition ${
-                      step > s ? "bg-blue-600" : "bg-gray-200"
+                      step > s ? "bg-[#2C4A1E]" : "bg-[#D4C9A8]"
                     }`}
                   />
                 )}
               </div>
             ))}
-            <span className="ml-2 text-xs text-gray-400">
+            <span className="ml-2 text-xs text-[#9B8660]">
               {step === 1 && (mode === "sitemap" ? "Enter website URL" : "Paste URLs")}
               {step === 2 && "Select articles"}
               {step === 3 && "Scraping…"}

@@ -44,12 +44,12 @@ export default function ManualUrlInput({ onContinue, onBack }: Props) {
       <div>
         <button
           onClick={onBack}
-          className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1"
+          className="text-sm text-[#9B8660] hover:text-[#5C4A2A] flex items-center gap-1"
         >
           ← Back
         </button>
-        <h2 className="mt-3 text-2xl font-bold text-gray-900">Enter URLs</h2>
-        <p className="mt-1 text-gray-500 text-sm">
+        <h2 className="mt-3 text-2xl font-bold text-[#1C1209]">Enter URLs</h2>
+        <p className="mt-1 text-[#7A6645] text-sm">
           Paste article URLs below — one per line.
         </p>
       </div>
@@ -63,15 +63,15 @@ export default function ManualUrlInput({ onContinue, onBack }: Props) {
           }}
           rows={12}
           placeholder={"https://example.com/blog/post-1\nhttps://example.com/blog/post-2\nhttps://example.com/blog/post-3"}
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 font-mono text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 resize-y"
+          className="w-full rounded-xl border border-[#C0B490] bg-[#FAF6EA] px-4 py-3 font-mono text-sm text-[#1C1209] placeholder-[#9B8660] focus:border-[#2C4A1E] focus:outline-none focus:ring-2 focus:ring-[#B8CCB0] resize-y"
         />
         {validCount > 0 && (
-          <p className="text-xs text-gray-400">{validCount} valid URL{validCount !== 1 ? "s" : ""} detected</p>
+          <p className="text-xs text-[#9B8660]">{validCount} valid URL{validCount !== 1 ? "s" : ""} detected</p>
         )}
       </div>
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+        <p className="rounded-lg bg-[#F5ECE8] px-4 py-3 text-sm text-[#8B1A2F]">
           {error}
         </p>
       )}
@@ -79,7 +79,7 @@ export default function ManualUrlInput({ onContinue, onBack }: Props) {
       <button
         onClick={handleContinue}
         disabled={validCount === 0}
-        className="flex items-center justify-center rounded-xl bg-purple-600 px-6 py-3 font-semibold text-white transition hover:bg-purple-700 disabled:opacity-50"
+        className="flex items-center justify-center rounded-xl bg-[#5C2D45] px-6 py-3 font-semibold text-[#F0E8D0] transition hover:bg-[#441E31] disabled:opacity-50"
       >
         Continue with {validCount > 0 ? validCount : ""} URL{validCount !== 1 ? "s" : ""}
       </button>

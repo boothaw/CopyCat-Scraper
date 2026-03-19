@@ -55,24 +55,24 @@ export default function ScrapeProgress({ articles, onDone }: Props) {
   return (
     <div className="flex flex-col gap-6 w-full max-w-xl">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Scraping Articles</h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <h2 className="text-2xl font-bold text-[#1C1209]">Scraping Articles</h2>
+        <p className="mt-1 text-sm text-[#7A6645]">
           Please wait — this may take a few minutes for large batches.
         </p>
       </div>
 
       <div className="flex flex-col gap-3">
-        <div className="flex justify-between text-sm text-gray-600">
+        <div className="flex justify-between text-sm text-[#5C4A2A]">
           <span>{current} of {total}</span>
           <span>{pct}%</span>
         </div>
-        <div className="h-3 w-full rounded-full bg-gray-100 overflow-hidden">
+        <div className="h-3 w-full rounded-full bg-[#E8DEC4] overflow-hidden">
           <div
-            className="h-full rounded-full bg-blue-500 transition-all duration-300"
+            className="h-full rounded-full bg-[#2C4A1E] transition-all duration-300"
             style={{ width: `${pct}%` }}
           />
         </div>
-        <p className="text-sm text-gray-500 truncate">
+        <p className="text-sm text-[#7A6645] truncate">
           {current >= total
             ? "Building document…"
             : current > 0
@@ -82,19 +82,19 @@ export default function ScrapeProgress({ articles, onDone }: Props) {
       </div>
 
       {errorCount > 0 && (
-        <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        <p className="rounded-lg bg-[#F5F0DC] px-4 py-3 text-sm text-[#7A5C00]">
           {errorCount} article{errorCount !== 1 ? "s" : ""} could not be scraped and will be skipped.
         </p>
       )}
 
       {streamError && (
-        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+        <p className="rounded-lg bg-[#F5ECE8] px-4 py-3 text-sm text-[#8B1A2F]">
           Connection error: {streamError}
         </p>
       )}
 
       {current < total && (
-        <p className="text-xs text-center text-gray-400">
+        <p className="text-xs text-center text-[#9B8660]">
           Do not close this tab while scraping is in progress.
         </p>
       )}

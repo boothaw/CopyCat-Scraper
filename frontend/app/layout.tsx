@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Content Scraper",
+  title: "CopyCat Scraper - iVET360",
   description: "Scrape website articles and export to Google Docs",
 };
 
