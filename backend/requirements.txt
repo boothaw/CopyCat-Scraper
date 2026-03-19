@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+requests
+readability-lxml
+beautifulsoup4
+lxml
+python-docx
+python-multipart
+sse-starlette
