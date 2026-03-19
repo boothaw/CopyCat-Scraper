@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from io import BytesIO
 from urllib.parse import urlparse
 
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -21,12 +21,14 @@ from exporter import build_docx
 
 # ---------- SECURITY ----------
 
-API_KEY = os.getenv("API_KEY", "")
-
-def verify_api_key(x_api_key: str = Header(default="")):
-    """Reject requests that don't carry the correct X-API-Key header."""
-    if API_KEY and x_api_key != API_KEY:
-        raise HTTPException(status_code=403, detail="Forbidden")
+# Comma-separated list of allowed origins, e.g. "https://myapp.netlify.app"
+# Falls back to * for local development when the env var is not set.
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "")
+ALLOWED_ORIGINS: list[str] = (
+    [o.strip() for o in _raw_origins.split(",") if o.strip()]
+    if _raw_origins
+    else ["*"]
+)
 
 # IP ranges that must never be fetched (SSRF protection)
 _PRIVATE_NETS = [
@@ -94,7 +96,7 @@ app = FastAPI(title="Content Scraper API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -116,7 +118,7 @@ def root():
     return {"status": "ok", "message": "Content Scraper API is running"}
 
 
-@app.post("/discover", dependencies=[Depends(verify_api_key)])
+@app.post("/discover")
 def discover(req: DiscoverRequest):
     """Auto-detect sitemap from the given URL and return a list of article URLs."""
     assert_safe_url(req.url)
@@ -129,7 +131,7 @@ def discover(req: DiscoverRequest):
     return {"articles": articles, "count": len(articles), "method": method}
 
 
-@app.post("/scrape", dependencies=[Depends(verify_api_key)])
+@app.post("/scrape")
 async def scrape(req: ScrapeRequest):
     """Scrape a list of URLs, stream progress via SSE, and store the resulting .docx."""
     for url in req.urls:
