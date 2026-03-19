@@ -4,10 +4,17 @@ const API_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
   "http://localhost:8000";
 
+const API_HEADERS: Record<string, string> = {
+  "Content-Type": "application/json",
+  ...(process.env.NEXT_PUBLIC_API_KEY
+    ? { "X-API-Key": process.env.NEXT_PUBLIC_API_KEY }
+    : {}),
+};
+
 export async function discoverArticles(url: string): Promise<DiscoverResponse> {
   const res = await fetch(`${API_URL}/discover`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: API_HEADERS,
     body: JSON.stringify({ url }),
   });
 
@@ -33,7 +40,7 @@ export function streamScrape(
     try {
       const res = await fetch(`${API_URL}/scrape`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: API_HEADERS,
         body: JSON.stringify({ urls }),
         signal: controller?.signal,
       });
