@@ -194,7 +194,7 @@ async def scrape(req: ScrapeRequest):
     return EventSourceResponse(event_generator())
 
 
-@app.get("/download/{file_id}", dependencies=[Depends(verify_api_key)])
+@app.get("/download/{file_id}")
 def download(file_id: str):
     """Return the generated .docx file and remove it from memory."""
     entry = file_store.pop(file_id, None)
