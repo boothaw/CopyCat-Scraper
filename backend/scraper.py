@@ -66,22 +66,18 @@ def scrape_article(url: str) -> dict | None:
             "#page-container",      # Divi fallback
         ]
 
-        fallback_soup = None
-        if len(readability_text) < 800:
-            for selector in CONTENT_SELECTORS:
-                matches = original_soup.select(selector)
-                if not matches:
-                    continue
-                # Concatenate all matches into a single wrapper div
-                wrapper = BeautifulSoup("<div></div>", "html.parser").div
-                for m in matches:
-                    wrapper.append(BeautifulSoup(str(m), "html.parser"))
-                candidate_text = wrapper.get_text(separator=" ", strip=True)
-                if len(candidate_text) > len(readability_text):
-                    fallback_soup = wrapper
-                    break
-
-        soup = fallback_soup if fallback_soup else readability_soup
+        # Try each selector in priority order; use the first one that beats Readability
+        soup = readability_soup
+        for selector in CONTENT_SELECTORS:
+            matches = original_soup.select(selector)
+            if not matches:
+                continue
+            wrapper = BeautifulSoup("<div></div>", "html.parser").div
+            for m in matches:
+                wrapper.append(BeautifulSoup(str(m), "html.parser"))
+            if len(wrapper.get_text(separator=" ", strip=True)) > len(readability_text):
+                soup = wrapper
+                break
 
         if not title:
             title_tag = soup.find("h1") or soup.find("h2")
